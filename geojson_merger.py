@@ -245,7 +245,6 @@ def main():
                 st.subheader("Data Preview")
                 if st.session_state.current_geojson['features']:
                     df = pd.json_normalize(st.session_state.current_geojson['features'])
-                    st.write("Columns in your dataset:", df.columns.tolist())
                     st.dataframe(df.head(100))
 
                 # Get available properties for filtering
@@ -292,9 +291,9 @@ def main():
                 df = pd.read_csv(uploaded_file)
                 st.success("CSV file successfully loaded")
                 
+                # Added data preview section for csv
                 # Added data preview section for CSV
                 st.subheader("Data Preview")
-                st.write("Columns in your dataset:", df.columns.tolist())
                 st.dataframe(df.head(100))
 
                 col1, col2 = st.columns(2)
