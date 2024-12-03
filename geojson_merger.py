@@ -367,11 +367,13 @@ def main():
                             )
                         
                         with col2:
+                            download_name = f"{output_filename if output_filename else 'processed'}.geojson"
                             st.download_button(
                                 "Download Processed GeoJSON",
                                 data=json.dumps(processed_geojson, indent=2),
-                                file_name=f"{output_filename}.geojson",
-                                mime="application/json"
+                                file_name=download_name,
+                                mime="application/json",
+                                key="download_button"  # Added unique key
                             )
 
 if __name__ == "__main__":
