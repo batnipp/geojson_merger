@@ -286,21 +286,44 @@ def main():
             except Exception as e:
                 st.error(f"Unexpected error processing GeoJSON file: {str(e)}")
 
+       [Previous code remains the same up until the CSV handling section. After the CSV data preview, replace the section with:]
+
         elif file_type == 'csv':
             try:
                 df = pd.read_csv(uploaded_file)
                 st.success("CSV file successfully loaded")
                 
-                # Added data preview section for csv
-                # Added data preview section for CSV
+                # Data preview section for CSV
                 st.subheader("Data Preview")
                 st.dataframe(df.head(100))
 
+                # Column selection for coordinates
                 col1, col2 = st.columns(2)
                 with col1:
                     lat_col = st.selectbox("Select Latitude Column", df.columns)
                 with col2:
                     lon_col = st.selectbox("Select Longitude Column", df.columns)
+
+                # Add filtering capabilities for CSV
+                st.subheader("Filter Data")
+                # Select columns to filter
+                filter_columns = st.multiselect(
+                    "Select columns to filter by",
+                    options=[col for col in df.columns if col not in [lat_col, lon_col]]
+                )
+                
+                # Create filters for selected columns
+                for col in filter_columns:
+                    unique_values = df[col].unique()
+                    selected_values = st.multiselect(
+                        f"Filter by {col}",
+                        options=unique_values,
+                        default=unique_values
+                    )
+                    if selected_values:
+                        df = df[df[col].isin(selected_values)]
+
+                st.write(f"Showing {len(df)} rows after filtering")
 
                 is_valid, message = validate_csv_coordinates(df, lat_col, lon_col)
                 if not is_valid:
@@ -349,19 +372,22 @@ def main():
                         if m:
                             folium_static(m)
 
-                        # Add file naming field
-                        output_filename = st.text_input(
-                            "Name your output file",
-                            value="processed",
-                            help="Enter the name for your output file (without .geojson extension)"
-                        )
+                        col1, col2 = st.columns([2, 1])
+                        with col1:
+                            output_filename = st.text_input(
+                                "Name your output file",
+                                value="processed",
+                                help="Enter the name for your output file (without .geojson extension)",
+                                key="output_filename"  # Added unique key
+                            )
                         
-                        st.download_button(
-                            "Download Processed GeoJSON",
-                            data=json.dumps(processed_geojson, indent=2),
-                            file_name=f"{output_filename}.geojson",
-                            mime="application/json"
-                        )
+                        with col2:
+                            st.download_button(
+                                "Download Processed GeoJSON",
+                                data=json.dumps(processed_geojson, indent=2),
+                                file_name=f"{output_filename}.geojson",
+                                mime="application/json"
+                            )
 
 if __name__ == "__main__":
     main()
