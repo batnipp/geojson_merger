@@ -200,6 +200,14 @@ def main():
     st.set_page_config(page_title="Smart GeoJSON and CSV Processor", layout="wide")
 
     st.title("GeoJSON and CSV Feature Combiner")
+    
+    # Added value proposition section
+    st.markdown("""
+    ### Key Benefits:
+    - Simplify complex geospatial workflows by easily converting between CSV and GeoJSON formats while combining multiple geometric features into a single shape
+    - Save time with instant visualization and filtering capabilities for large geographic datasets
+    """)
+
     st.markdown("""
     Upload your GeoJSON or CSV file to get started. 
     You can filter features based on their properties and combine them into a single shape.
@@ -232,6 +240,13 @@ def main():
 
                 st.session_state.current_geojson = geojson_data
                 st.success("GeoJSON file successfully loaded")
+
+                # Added data preview section for GeoJSON
+                st.subheader("Data Preview")
+                if st.session_state.current_geojson['features']:
+                    df = pd.json_normalize(st.session_state.current_geojson['features'])
+                    st.write("Columns in your dataset:", df.columns.tolist())
+                    st.dataframe(df.head(100))
 
                 # Get available properties for filtering
                 if st.session_state.current_geojson and st.session_state.current_geojson['features']:
@@ -276,8 +291,11 @@ def main():
             try:
                 df = pd.read_csv(uploaded_file)
                 st.success("CSV file successfully loaded")
-                st.write("Preview of your data:")
-                st.dataframe(df.head())
+                
+                # Added data preview section for CSV
+                st.subheader("Data Preview")
+                st.write("Columns in your dataset:", df.columns.tolist())
+                st.dataframe(df.head(100))
 
                 col1, col2 = st.columns(2)
                 with col1:
@@ -332,10 +350,17 @@ def main():
                         if m:
                             folium_static(m)
 
+                        # Add file naming field
+                        output_filename = st.text_input(
+                            "Name your output file",
+                            value="processed",
+                            help="Enter the name for your output file (without .geojson extension)"
+                        )
+                        
                         st.download_button(
                             "Download Processed GeoJSON",
                             data=json.dumps(processed_geojson, indent=2),
-                            file_name="processed.geojson",
+                            file_name=f"{output_filename}.geojson",
                             mime="application/json"
                         )
 
