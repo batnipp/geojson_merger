@@ -357,24 +357,22 @@ def main():
                         if m:
                             folium_static(m)
 
-                        col1, col2 = st.columns([2, 1])
-                        with col1:
-                            output_filename = st.text_input(
-                                "Name your output file",
-                                value="processed",
-                                help="Enter the name for your output file (without .geojson extension)",
-                                key="output_filename"
-                            )
+                       # File naming and download section
+                        output_filename = st.text_input(
+                            "Name your output file",
+                            value="processed",
+                            help="Enter the name for your output file (without .geojson extension)"
+                        )
                         
-                        with col2:
-                            download_name = f"{output_filename if output_filename else 'processed'}.geojson"
-                            st.download_button(
-                                "Download Processed GeoJSON",
-                                data=json.dumps(processed_geojson, indent=2),
-                                file_name=download_name,
-                                mime="application/json",
-                                key="download_button"  # Added unique key
-                            )
+                        st.download_button(
+                            "Download Processed GeoJSON",
+                            data=json.dumps(processed_geojson, indent=2),
+                            file_name=f"{output_filename}.geojson",
+                            mime="application/json"
+                        )
 
 if __name__ == "__main__":
     main()
+
+
+
