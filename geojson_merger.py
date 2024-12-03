@@ -201,7 +201,6 @@ def main():
 
     st.title("GeoJSON and CSV Feature Combiner")
     
-    # Added value proposition section
     st.markdown("""
     ### Key Benefits:
     - Simplify complex geospatial workflows by easily converting between CSV and GeoJSON formats while combining multiple geometric features into a single shape
@@ -241,17 +240,14 @@ def main():
                 st.session_state.current_geojson = geojson_data
                 st.success("GeoJSON file successfully loaded")
 
-                # Added data preview section for GeoJSON
                 st.subheader("Data Preview")
                 if st.session_state.current_geojson['features']:
                     df = pd.json_normalize(st.session_state.current_geojson['features'])
                     st.dataframe(df.head(100))
 
-                # Get available properties for filtering
                 if st.session_state.current_geojson and st.session_state.current_geojson['features']:
                     properties = st.session_state.current_geojson['features'][0]['properties'].keys()
                     
-                    # Create filter section
                     st.subheader("Filter Features")
                     col1, col2 = st.columns(2)
                     
@@ -261,7 +257,6 @@ def main():
                             options=properties
                         )
                     
-                    # Create filters for selected properties
                     filters = {}
                     if selected_properties:
                         with col2:
@@ -274,11 +269,8 @@ def main():
                                 )
                                 filters[prop] = selected_values
 
-                    # Apply filters
                     filtered_geojson = filter_geojson(st.session_state.current_geojson, filters)
                     st.write(f"Showing {len(filtered_geojson['features'])} features after filtering")
-
-                    # Update the current GeoJSON with filtered data
                     st.session_state.current_geojson = filtered_geojson
 
             except json.JSONDecodeError as e:
@@ -286,33 +278,26 @@ def main():
             except Exception as e:
                 st.error(f"Unexpected error processing GeoJSON file: {str(e)}")
 
-       [Previous code remains the same up until the CSV handling section. After the CSV data preview, replace the section with:]
-
         elif file_type == 'csv':
             try:
                 df = pd.read_csv(uploaded_file)
                 st.success("CSV file successfully loaded")
                 
-                # Data preview section for CSV
                 st.subheader("Data Preview")
                 st.dataframe(df.head(100))
 
-                # Column selection for coordinates
                 col1, col2 = st.columns(2)
                 with col1:
                     lat_col = st.selectbox("Select Latitude Column", df.columns)
                 with col2:
                     lon_col = st.selectbox("Select Longitude Column", df.columns)
 
-                # Add filtering capabilities for CSV
                 st.subheader("Filter Data")
-                # Select columns to filter
                 filter_columns = st.multiselect(
                     "Select columns to filter by",
                     options=[col for col in df.columns if col not in [lat_col, lon_col]]
                 )
                 
-                # Create filters for selected columns
                 for col in filter_columns:
                     unique_values = df[col].unique()
                     selected_values = st.multiselect(
@@ -378,7 +363,7 @@ def main():
                                 "Name your output file",
                                 value="processed",
                                 help="Enter the name for your output file (without .geojson extension)",
-                                key="output_filename"  # Added unique key
+                                key="output_filename"
                             )
                         
                         with col2:
