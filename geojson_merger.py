@@ -195,7 +195,27 @@ def display_map(geojson_data, processed_geojson=None):
     except Exception as e:
         st.error(f"Error displaying map: {str(e)}")
         return None
-
+def safe_preview_geojson(geojson_data):
+    """Safely create a preview of GeoJSON data without geometry conversion issues."""
+    try:
+        # Extract properties and add feature type
+        features_data = []
+        for feature in geojson_data['features']:
+            feature_data = {
+                'geometry_type': feature['geometry']['type']
+            }
+            # Safely add properties
+            if 'properties' in feature and feature['properties']:
+                feature_data.update(feature['properties'])
+            features_data.append(feature_data)
+        
+        # Create DataFrame without geometry column
+        df = pd.DataFrame(features_data)
+        return df
+    except Exception as e:
+        st.error(f"Error creating preview: {str(e)}")
+        return None
+    
 def main():
     st.set_page_config(page_title="Smart GeoJSON and CSV Processor", layout="wide")
 
@@ -242,8 +262,9 @@ def main():
 
                 st.subheader("Data Preview")
                 if st.session_state.current_geojson['features']:
-                    df = pd.json_normalize(st.session_state.current_geojson['features'])
-                    st.dataframe(df.head(100))
+                    preview_df = safe_preview_geojson(st.session_state.current_geojson)
+                    if preview_df is not None:
+                        st.dataframe(preview_df.head(100))
 
                 if st.session_state.current_geojson and st.session_state.current_geojson['features']:
                     properties = st.session_state.current_geojson['features'][0]['properties'].keys()
