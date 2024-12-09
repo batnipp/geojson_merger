@@ -141,25 +141,60 @@ def csv_to_geojson(df, lat_col, lon_col):
         "features": features
     }
 
+def clean_geometry(geometry):
+    """Clean and validate a geometry, attempting to fix topology errors."""
+    try:
+        if not geometry.is_valid:
+            # Try to make the geometry valid
+            cleaned = geometry.buffer(0)
+            if cleaned.is_valid:
+                return cleaned
+        return geometry
+    except Exception as e:
+        st.warning(f"Could not clean geometry: {str(e)}")
+        return geometry
+
 def process_geometries(geojson_data):
-    """Convert multiple geometries into a single MultiPolygon or GeometryCollection."""
+    """Convert multiple geometries into a single MultiPolygon or GeometryCollection with validation."""
     try:
         if not geojson_data or 'features' not in geojson_data:
             st.error("Invalid GeoJSON data")
             return None
 
-        geometries = [shape(feature['geometry']) for feature in geojson_data['features']]
+        valid_geometries = []
+        for feature in geojson_data['features']:
+            try:
+                geom = shape(feature['geometry'])
+                cleaned_geom = clean_geometry(geom)
+                if cleaned_geom.is_valid:
+                    valid_geometries.append(cleaned_geom)
+                else:
+                    st.warning(f"Skipping invalid geometry in feature {feature.get('properties', {})}")
+            except Exception as e:
+                st.warning(f"Error processing feature: {str(e)}")
+                continue
 
-        if not geometries:
-            st.warning("No features found to process.")
+        if not valid_geometries:
+            st.error("No valid geometries found to process")
             return None
 
-        combined = unary_union(geometries)
+        try:
+            # Use buffer(0) on the union to clean any remaining topology issues
+            combined = unary_union(valid_geometries).buffer(0)
+            
+            if combined.is_empty:
+                st.error("Combined geometry is empty")
+                return None
 
-        if combined.geom_type == 'Polygon':
-            combined = MultiPolygon([combined])
+            if combined.geom_type == 'Polygon':
+                combined = MultiPolygon([combined])
+            
+            return combined
 
-        return combined
+        except Exception as e:
+            st.error(f"Error combining geometries: {str(e)}")
+            return None
+
     except Exception as e:
         st.error(f"Error processing geometries: {str(e)}")
         return None
